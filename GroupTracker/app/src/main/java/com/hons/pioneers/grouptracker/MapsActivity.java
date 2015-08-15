@@ -20,20 +20,39 @@ public class MapsActivity extends FragmentActivity {
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
 
+    private int mInterval = 5000; // 5 seconds by default, can be changed later
+    private Handler mHandler;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         setUpMapIfNeeded();
 
-        Handler handler = new Handler();
-        handler.postDelayed(mRunnable,100);
+        mHandler = new Handler();
+        startRepeatingTask();
+    }
+
+    Runnable RefreshMarkers = new Runnable() {
+        @Override
+        public void run() {
+            setUpMap(); //this function can change value of mInterval.
+            mHandler.postDelayed(RefreshMarkers, mInterval);
+        }
+    };
+
+    void startRepeatingTask() {
+        RefreshMarkers.run();
+    }
+
+    void stopRepeatingTask() {
+        mHandler.removeCallbacks(RefreshMarkers);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        setUpMap();
+        setUpMapIfNeeded();
     }
 
     /**
@@ -63,14 +82,6 @@ public class MapsActivity extends FragmentActivity {
             }
         }
     }
-    private final Runnable mRunnable = new Runnable()
-    {
-        public void run()
-        {
-            setUpMap();
-        }
-
-    };
     /**
      * This is where we can add markers or lines, add listeners or move the camera. In this case, we
      * just add a marker near Africa.
@@ -96,9 +107,6 @@ public class MapsActivity extends FragmentActivity {
                 e.printStackTrace();
             }
     }
-
-
-
 
     private List<MapObject> getObjects(String id) {
         Random r = new Random();
